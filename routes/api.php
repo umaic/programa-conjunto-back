@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 */
 Route::get('question/{id}/{id_s}', 'SurveyController@resolveGraph');
 Route::get('questions/{id_s}', 'SurveyController@questions');
+Route::get('surveys_borough/{id_b}', 'SurveyController@surveys_borough');
 Route::get('respondent/{id_s}/{id_r}', 'RespondentController@getAnswers');
 Route::resource('survey', 'SurveyController');
 //Route::resource('topics', 'SurveyController');

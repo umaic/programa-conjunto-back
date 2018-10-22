@@ -89,20 +89,49 @@ class RespondentController extends Controller
 
         $resource = SurveyBorough::with(['topics.questions.options.answers'=>function ($query) use($respondent_id){
             $query->where('respondent_id','=',$respondent_id);
-        },'topics.questions.text','topics.questions.options.subOptions.answers'=>function ($query) use($respondent_id){
-            $query->where('respondent_id','=',$respondent_id);
-        }])->where('id','=',$survey_id)->first();
+        },'topics.questions.text'])->where('id','=',$survey_id)->first();
 
         $data = $resource->topics;
         foreach ($data as $top) {
             foreach ($top->questions as $q) {
                 $q['jsonUtilities'] = json_decode($q->utilities);
-                foreach ($q->options as $op) {
-                    if (count($op->subOptions)>0) {
-                        $q['jsonUtilities']->stacked = true;
-                        break;
+                $resolved = [];
+
+                if ($q['jsonUtilities']->txt) {
+                    $resolved['values'][] = $q->options[0]->answers[0]->value;
+                }else if ($q['jsonUtilities']->weighted) {
+
+                    $resolved['series'] = [];
+                    $valuesarray = [];
+                    $temparray = [];
+                    
+                    foreach ($q->options as $op) {
+                        $resolved['labels'][] = $op->label;
+                        foreach ($op->answers as $ans) {
+                            $valuesarray[] = $ans->value;
+                        }      
+                    }
+
+                    $temparray[] = $valuesarray;
+                    $resolved['values'] = $temparray;
+
+                }else if($q['jsonUtilities']->number){
+                    foreach ($q->options as $op) {
+                            $resolved['labels'][] = $op->label;
+                            foreach ($op->answers as $ans) {
+                                    $resolved['values'][] = $ans->value;  
+                                  }      
+                        }
+                }else{
+                    foreach ($q->options as $op) {
+                        if ($op->parent == 0) {
+                            $resolved['labels'][] = $op->label;
+                            $resolved['series'] = [];
+                            $resolved['values'][] = intval(count($op->answers));             
+                        }
                     }
                 }
+                $q['graph'] = $resolved;
             }
         }
         return $data;
