@@ -172,6 +172,19 @@ class SurveyController extends Controller
                             $resolved['values'][$key] += $ans->value;  
                           }      
                 }
+        }else if($resolved['utilities']->liker){
+            foreach ($options as $key => $op) {
+                    if (strlen($op->label) > 41) {
+                        $resolved['labels'][] = explode(" ", $op->label)[0]. " " .explode(" ", $op->label)[1];
+                    }else{
+                       $resolved['labels'][] = $op->label; 
+                    }                    
+                    $valuesarray = [];
+                    $temp[] = count($op->answers);        
+            }
+            for ($i=0; $i < count($resolved['labels']); $i++) { 
+               $resolved['values'][0][$i] = $temp[$i];
+            }
         }else{
             foreach ($options as $op) {
                 if ($op->parent == 0) {
